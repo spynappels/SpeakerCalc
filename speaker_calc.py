@@ -6,9 +6,9 @@ import evid62_2k
 
 
 # path length function, supposes speaker height is 2m above listeners
-def path_length(fl):
+def path_length(fl,hgt):
     floor = int(fl)
-    path = sqrt((floor**2)+4)
+    path = sqrt((floor**2)+(hgt**2))
     return(path)
 
 # path loss function
@@ -60,9 +60,10 @@ def calculate():
     floor_length = float(e1.get())
     hor = int(e3.get())
     vert = int(e4.get())
+    hgt = 2
 
     # Path and loss calcs
-    path = path_length(floor_length)
+    path = path_length(floor_length, hgt)
     loss = path_loss(path)
     axis_loss_val = axis_loss(hor, vert, speaker_type)
 
