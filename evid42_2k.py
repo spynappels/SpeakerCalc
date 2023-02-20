@@ -291,3 +291,4 @@ vertical = {
     355:-0.4,
     357.5:-0.2,
 }
+sensitivity = 89

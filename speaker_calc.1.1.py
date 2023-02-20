@@ -5,10 +5,11 @@ import evid42_2k
 import evid62_2k
 
 
-# path length function, supposes speaker height is 2m above listeners
-def path_length(fl,hgt):
-    floor = int(fl)
-    path = sqrt((floor**2)+(hgt**2))
+# path length function
+def path_length(fl,hght):
+    floor = float(fl)
+    height = float(hght)
+    path = sqrt((floor**2)+(height**2))
     return(path)
 
 # path loss function
@@ -60,10 +61,10 @@ def calculate():
     floor_length = float(e1.get())
     hor = int(e3.get())
     vert = int(e4.get())
-    hgt = 2
+    height = float(e6.get())
 
     # Path and loss calcs
-    path = path_length(floor_length, hgt)
+    path = path_length(floor_length,height)
     loss = path_loss(path)
     axis_loss_val = axis_loss(hor, vert, speaker_type)
 
@@ -71,24 +72,47 @@ def calculate():
     if calc_type == 1: # Calculate speaker SPL
         seat_spl = int(e2.get())
         speaker_spl = seat_spl + (loss + axis_loss_val)
+        e2["fg"] = "black"
+        e5["fg"] = "red"
         e5.insert(0, f"{speaker_spl:.1f}")
+        
     else: # Calculate seat SPL
         speaker_spl = float(e5.get())
         seat_spl = (speaker_spl - loss) - axis_loss_val
+        e5["fg"] = "black"
+        e2["fg"] = "red"
         e2.insert(0, f"{seat_spl:.1f}")
+    
+    # Calculate Input Power
+    if speaker_type == 0:
+        sensitivity = evid42_2k.sensitivity
+    elif speaker_type == 1:
+        sensitivity = evid62_2k.sensitivity
+    power = int(10 ** ((speaker_spl - sensitivity)/10))
+    
     # Display of output
+    Label(master, text="               ").grid(row=3, column=1, sticky=W, padx=4)
+    Label(master, text="               ").grid(row=3, column=3, sticky=W, padx=4)
+    Label(master, text="                    ").grid(row=4, column=1, sticky=W, padx=4)
+    Label(master, text="                    ").grid(row=5, column=1, sticky=W, padx=4)
     Label(master, text=f"{path:.2f}m").grid(row=3, column=1, sticky=W, padx=4)
     Label(master, text=f"{loss:.1f}dB-SPL").grid(row=4, column=1, sticky=W, padx=4)
-    Label(master, text=f"{axis_loss_val:.1f}dB-SPL").grid(row=5, column=1, sticky=W, padx=4)
+    Label(master, text=f"{axis_loss_val:.1f}dB-SPL").grid(row=4, column=3, sticky=W, padx=4)
+    Label(master, fg="red", text=f"{power}W").grid(row=3, column=3, sticky=W, padx=4)
     lb1.activate(speaker_type)
 
 def clear():
     e1.delete(0, 20)
     e2.delete(0, 20)
+    e2["fg"] = "black"
     e3.delete(0, 20)
     e4.delete(0, 20)
     e5.delete(0, 20)
+    e5["fg"] = "black"
+    e6.delete(0, 20)
+    e6.insert(0,2)
     Label(master, text="               ").grid(row=3, column=1, sticky=W, padx=4)
+    Label(master, text="               ").grid(row=3, column=3, sticky=W, padx=4)
     Label(master, text="                    ").grid(row=4, column=1, sticky=W, padx=4)
     Label(master, text="                    ").grid(row=5, column=1, sticky=W, padx=4)
 
@@ -107,14 +131,20 @@ Label(master, text="Speaker Output (dB-SPL):").grid(row=0, column=2, sticky=W)
 # Get speaker SPL
 e5 = Entry(master)
 e5.grid(row=0, column=3, padx=4)
+Label(master, text="Speaker HAL(m):").grid(row=0, column=4, sticky=W)
+# Get speaker height, defaults to 2m
+e6 = Entry(master)
+e6.grid(row=0, column=5, padx=4)
+e6.insert(0,2)
 
-Label(master, text="Floor Length in metres:").grid(row=1, sticky=W)
+Label(master, text="Floor Length (m):").grid(row=1, sticky=W)
 Label(master, text="Target Seat SPL:").grid(row=1, column=2, sticky=W)
 Label(master, text="Horizontal Off-Axis Angle:").grid(row=2, sticky=W)
 Label(master, text="Vertical Off-Axis Angle:").grid(row=2, column=2, sticky=W)
 Label(master, text="Path Length:").grid(row=3, sticky=W)
+Label(master, text="Input Power:").grid(row=3, column=2, sticky=W)
 Label(master, text="Path Loss:").grid(row=4, sticky=W)
-Label(master, text="Off-Axis Loss:").grid(row=5, sticky=W)
+Label(master, text="Off-Axis Loss:").grid(row=4, column=2, sticky=W)
 
 #Floor length
 e1 = Entry(master)
@@ -130,7 +160,7 @@ e4 = Entry(master)
 e4.grid(row=2, column=3, padx=4)
 
 v = IntVar()
-v.set(2)
+v.set(1)
 Radiobutton(master, text="Calculate Speaker SPL", padx=5, variable=v, value=1).grid(row=6)
 Radiobutton(master, text="Calculate Seat SPL", padx=5, variable=v, value=2).grid(row=6, column=1)
 
